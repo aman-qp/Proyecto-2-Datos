@@ -1,5 +1,6 @@
 package com.example.proyecto_2_datos;
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -11,7 +12,7 @@ public class Biblioteca {
     }
 
     // Método para agregar un documento a la biblioteca
-    public void agregarDocumento(Documento documento) {
+    public void agregarDocumento(Documento documento) throws IOException {
         documentos.add(documento);
     }
 
@@ -28,15 +29,15 @@ public class Biblioteca {
         }
     }
 
-    // Método para cargar la biblioteca desde el almacenamiento
-    public void cargarBiblioteca() {
-        // Implementa la lógica para cargar la biblioteca desde el almacenamiento
+    // Método para obtener el contenido de un documento en la biblioteca
+    public String obtenerContenidoDocumento(Documento documento) throws IOException {
+        return documento.obtenerContenido();
     }
 
-    // Método para guardar la biblioteca en el almacenamiento
-    public void guardarBiblioteca() {
-        // Implementa la lógica para guardar la biblioteca en el almacenamiento
+    // Método para obtener la lista de documentos
+    public List<Documento> getDocumentos() {
+        return documentos;
     }
-
-    // Otros métodos según sea necesario
 }
+
+

@@ -2,19 +2,17 @@ package com.example.proyecto_2_datos;
 
 import javafx.beans.property.SimpleStringProperty;
 import javafx.fxml.FXML;
-import javafx.scene.control.*;
-import javafx.stage.FileChooser;
-import javafx.stage.DirectoryChooser;
 import javafx.scene.control.Alert;
-import javafx.scene.control.Alert.AlertType;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
+import javafx.scene.control.TextArea;
+import javafx.scene.input.MouseEvent;
+import javafx.stage.DirectoryChooser;
+import javafx.stage.FileChooser;
 
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
 import java.util.List;
-
-import org.apache.pdfbox.pdmodel.PDDocument;
-import org.apache.pdfbox.text.PDFTextStripper;
-import org.apache.poi.xwpf.usermodel.XWPFDocument;
-import org.apache.poi.xwpf.extractor.XWPFWordExtractor;
 
 public class HelloController {
     @FXML
@@ -25,163 +23,100 @@ public class HelloController {
     private TableColumn<Documento, String> tabla_docu;
 
     @FXML
-    private Button ag_docu;
-
-    @FXML
-    private Button eli_docu;
-
-    @FXML
     private TextArea areaContenido;
 
     @FXML
     private void initialize() {
         // Configurar la columna de la tabla para mostrar los nombres de los documentos
-        tabla_docu.setCellValueFactory(cellData -> {
-            String nombre = cellData.getValue().getNombre();
-            return new SimpleStringProperty(nombre);
-        });
+        tabla_docu.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getNombre()));
 
-        // Manejar la selección de documentos en la tabla
-        tablaDocumentos.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
-            if (newValue != null) {
-                // Obtener el contenido del documento seleccionado
-                String contenido = obtenerContenidoDocumento(newValue);
-                // Mostrar el contenido en el área de texto
-                areaContenido.setText(contenido);
-            }
-        });
+        // Vincular el evento de selección de la tabla para mostrar el contenido del documento
+        tablaDocumentos.setOnMouseClicked(this::onDocumentoSeleccionado);
     }
 
-    // Método para obtener el contenido de un documento
-    private String obtenerContenidoDocumento(Documento documento) {
-        StringBuilder contenido = new StringBuilder();
-        try {
-            // Obtener la ruta del archivo asociado al documento
-            String rutaArchivo = obtenerRutaDocumento(documento);
-
-            // Verificar el tipo de archivo y obtener su contenido
-            if (rutaArchivo.endsWith(".pdf")) {
-                contenido.append(obtenerContenidoPDF(rutaArchivo));
-            } else if (rutaArchivo.endsWith(".docx")) {
-                contenido.append(obtenerContenidoDOCX(rutaArchivo));
-            } else if (rutaArchivo.endsWith(".txt")) {
-                contenido.append(obtenerContenidoTXT(rutaArchivo));
-            } else {
-                contenido.append("Tipo de archivo no compatible.");
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-            contenido.append("Error al leer el archivo.");
-        }
-        return contenido.toString();
-    }
-
-    // Método para obtener el contenido de un archivo .docx
-    private String obtenerContenidoDOCX(String rutaArchivo) throws IOException {
-        StringBuilder contenido = new StringBuilder();
-        FileInputStream fis = new FileInputStream(rutaArchivo);
-        XWPFDocument docx = new XWPFDocument(fis);
-        XWPFWordExtractor extractor = new XWPFWordExtractor(docx);
-        contenido.append(extractor.getText());
-        extractor.close();
-        docx.close();
-        fis.close();
-        return contenido.toString();
-    }
-
-    // Método para obtener el contenido de un archivo .txt
-    private String obtenerContenidoTXT(String rutaArchivo) throws IOException {
-        StringBuilder contenido = new StringBuilder();
-        BufferedReader lector = null;
-        try {
-            lector = new BufferedReader(new FileReader(rutaArchivo));
-            String linea;
-            while ((linea = lector.readLine()) != null) {
-                contenido.append(linea).append("\n");
-            }
-        } finally {
-            if (lector != null) {
-                lector.close();
-            }
-        }
-        return contenido.toString();
-    }
-
-    // Método para obtener el contenido de un archivo PDF
-    private String obtenerContenidoPDF(String rutaArchivo) throws IOException {
-        StringBuilder contenido = new StringBuilder();
-        PDDocument document = null;
-        try {
-            document = PDDocument.load(new File(rutaArchivo));
-            PDFTextStripper stripper = new PDFTextStripper();
-            contenido.append(stripper.getText(document));
-        } finally {
-            if (document != null) {
-                document.close();
-            }
-        }
-        return contenido.toString();
-    }
-
-
-    private String obtenerRutaDocumento(Documento documento) {
-        return documento.getRuta();
-    }
-
+    // Método para manejar el evento de agregar documentos
     @FXML
     private void onAgregarDocumentoClick() {
-        // Mostrar el diálogo para seleccionar archivos
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Seleccionar documento");
-        fileChooser.setInitialDirectory(new File(System.getProperty("user.home"))); // Directorio inicial
+        fileChooser.setInitialDirectory(new File(System.getProperty("user.home")));
         fileChooser.getExtensionFilters().addAll(
-                new FileChooser.ExtensionFilter("Documentos", "*.pdf", "*.docx", "*.txt") // Filtros de extensiones
+                new FileChooser.ExtensionFilter("Documentos", "*.pdf", "*.docx", "*.txt")
         );
         List<File> selectedFiles = fileChooser.showOpenMultipleDialog(null);
 
         if (selectedFiles != null) {
             for (File selectedFile : selectedFiles) {
-                agregarDocumento(selectedFile);
-            }
-        }
-    }
-
-    @FXML
-    private void onAgregarCarpetaClick() {
-        // Mostrar el diálogo para seleccionar carpetas
-        DirectoryChooser directoryChooser = new DirectoryChooser();
-        directoryChooser.setTitle("Seleccionar carpeta");
-        directoryChooser.setInitialDirectory(new File(System.getProperty("user.home"))); // Directorio inicial
-        File selectedFolder = directoryChooser.showDialog(null);
-
-        if (selectedFolder != null) {
-            // Agregar todos los archivos dentro de la carpeta seleccionada
-            File[] filesInFolder = selectedFolder.listFiles();
-            if (filesInFolder != null) {
-                for (File file : filesInFolder) {
-                    agregarDocumento(file);
+                Documento documento = new Documento(selectedFile.getName(), selectedFile.getAbsolutePath());
+                try {
+                    biblioteca.agregarDocumento(documento);
+                } catch (IOException e) {
+                    mostrarAlerta("Error", "Error al agregar el documento", e.getMessage());
                 }
             }
+            tablaDocumentos.getItems().addAll(biblioteca.getDocumentos());
         }
     }
 
-    // Método para agregar un documento a la biblioteca
-    private void agregarDocumento(File archivo) {
-        String nombreArchivo = archivo.getName();
-        String extension = obtenerExtension(nombreArchivo);
+    // Método para manejar el evento de agregar una carpeta de documentos
+    @FXML
+    private void onAgregarCarpetaClick() {
+        DirectoryChooser directoryChooser = new DirectoryChooser();
+        directoryChooser.setTitle("Seleccionar carpeta");
+        File selectedDirectory = directoryChooser.showDialog(null);
 
-        if (extension.equals("pdf") || extension.equals("docx") || extension.equals("txt")) {
-            Documento documento = new Documento(nombreArchivo);
-            documento.setRuta(archivo.getAbsolutePath());
-            biblioteca.agregarDocumento(documento);
-            tablaDocumentos.getItems().add(documento);
-        } else {
-            Alert alert = new Alert(AlertType.INFORMATION);
-            alert.setTitle("Formato no admitido");
-            alert.setHeaderText(null);
-            alert.setContentText("Solo se pueden agregar archivos con extensiones .pdf, .docx o .txt.");
-            alert.showAndWait();
+        if (selectedDirectory != null) {
+            File[] files = selectedDirectory.listFiles();
+            if (files != null) {
+                for (File file : files) {
+                    if (file.isFile()) {
+                        String nombre = file.getName();
+                        String extension = obtenerExtension(nombre);
+                        if (extension.equals("pdf") || extension.equals("docx") || extension.equals("txt")) {
+                            Documento documento = new Documento(nombre, file.getAbsolutePath());
+                            try {
+                                biblioteca.agregarDocumento(documento);
+                            } catch (IOException e) {
+                                mostrarAlerta("Error", "Error al agregar el documento", e.getMessage());
+                            }
+                        }
+                    }
+                }
+                tablaDocumentos.getItems().addAll(biblioteca.getDocumentos());
+            }
         }
+    }
+
+    // Método para manejar el evento de eliminar documentos
+    @FXML
+    private void onEliminarDocumentoClick() {
+        Documento documentoSeleccionado = tablaDocumentos.getSelectionModel().getSelectedItem();
+        if (documentoSeleccionado != null) {
+            biblioteca.eliminarDocumento(documentoSeleccionado);
+            tablaDocumentos.getItems().remove(documentoSeleccionado);
+        }
+    }
+
+    // Método para manejar el evento de seleccionar un documento en la tabla
+    private void onDocumentoSeleccionado(MouseEvent event) {
+        Documento documentoSeleccionado = tablaDocumentos.getSelectionModel().getSelectedItem();
+        if (documentoSeleccionado != null) {
+            try {
+                String contenido = documentoSeleccionado.obtenerContenido();
+                areaContenido.setText(contenido);
+            } catch (IOException e) {
+                mostrarAlerta("Error", "Error al obtener contenido del documento", e.getMessage());
+            }
+        }
+    }
+
+    // Método para mostrar una alerta
+    private void mostrarAlerta(String titulo, String encabezado, String mensaje) {
+        Alert alert = new Alert(Alert.AlertType.ERROR);
+        alert.setTitle(titulo);
+        alert.setHeaderText(encabezado);
+        alert.setContentText(mensaje);
+        alert.showAndWait();
     }
 
     // Método para obtener la extensión de un archivo
@@ -191,19 +126,6 @@ public class HelloController {
             return nombreArchivo.substring(puntoIndex + 1).toLowerCase();
         } else {
             return "";
-        }
-    }
-
-    @FXML
-    private void onEliminarDocumentoClick() {
-        // Obtener el documento seleccionado en la tabla
-        Documento documentoSeleccionado = tablaDocumentos.getSelectionModel().getSelectedItem();
-
-        if (documentoSeleccionado != null) {
-            // Eliminar el documento de la tabla
-            tablaDocumentos.getItems().remove(documentoSeleccionado);
-
-            // Aquí puedes agregar lógica adicional, como eliminar el documento de la biblioteca
         }
     }
 }
