@@ -1,6 +1,8 @@
 module com.example.proyecto_2_datos {
     requires javafx.controls;
     requires javafx.fxml;
+    requires org.apache.pdfbox;
+    requires org.apache.poi.ooxml;
 
 
     opens com.example.proyecto_2_datos to javafx.fxml;
