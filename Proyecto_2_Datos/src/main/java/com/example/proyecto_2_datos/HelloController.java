@@ -3,9 +3,11 @@ package com.example.proyecto_2_datos;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
+import javafx.scene.control.Button;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextArea;
+import javafx.scene.control.TextField;
 import javafx.scene.input.MouseEvent;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
@@ -14,16 +16,24 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
+
 public class HelloController {
     @FXML
     private TableView<Documento> tablaDocumentos;
     private Biblioteca biblioteca = new Biblioteca();
+    private AVLTree arbolAVL; 
 
     @FXML
     private TableColumn<Documento, String> tabla_docu;
 
     @FXML
     private TextArea areaContenido;
+
+     @FXML
+    private Button botonBuscar;
+
+    @FXML
+    private TextField campoBusqueda;
 
     @FXML
     private void initialize() {
@@ -32,6 +42,8 @@ public class HelloController {
 
         // Vincular el evento de selección de la tabla para mostrar el contenido del documento
         tablaDocumentos.setOnMouseClicked(this::onDocumentoSeleccionado);
+
+        arbolAVL = biblioteca.getArbolAVL();
     }
 
     // Método para manejar el evento de agregar documentos
@@ -97,18 +109,18 @@ public class HelloController {
         }
     }
 
-    // Método para manejar el evento de seleccionar un documento en la tabla
-    private void onDocumentoSeleccionado(MouseEvent event) {
-        Documento documentoSeleccionado = tablaDocumentos.getSelectionModel().getSelectedItem();
-        if (documentoSeleccionado != null) {
-            try {
-                String contenido = documentoSeleccionado.obtenerContenido();
-                areaContenido.setText(contenido);
-            } catch (IOException e) {
-                mostrarAlerta("Error", "Error al obtener contenido del documento", e.getMessage());
-            }
+   // Método para manejar el evento de seleccionar un documento en la tabla
+   private void onDocumentoSeleccionado(MouseEvent event) {
+    Documento documentoSeleccionado = tablaDocumentos.getSelectionModel().getSelectedItem();
+    if (documentoSeleccionado != null) {
+        try {
+            String contenido = documentoSeleccionado.obtenerContenido();
+            areaContenido.setText(contenido);
+        } catch (IOException e) {
+            mostrarAlerta("Error", "Error al obtener contenido del documento", e.getMessage());
         }
     }
+}
 
     // Método para mostrar una alerta
     private void mostrarAlerta(String titulo, String encabezado, String mensaje) {
@@ -128,4 +140,14 @@ public class HelloController {
             return "";
         }
     }
+    @FXML
+private void onBuscarPalabraClick() {
+    String palabra = campoBusqueda.getText().trim();
+    if (!palabra.isEmpty()) {
+        biblioteca.getArbolAVL().buscarPalabra(palabra); // Suponiendo que tienes un método getArbolAVL en Biblioteca
+    } else {
+        mostrarAlerta("Advertencia", "Campo vacío", "Por favor, ingrese una palabra para buscar.");
+    }
+}
+
 }

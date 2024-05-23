@@ -134,4 +134,24 @@ public class AVLTree {
 
         return node;
     }
+
+    public void buscarPalabra(String palabra) {
+        buscarPalabraRecursive(root, palabra);
+    }
+    
+    private void buscarPalabraRecursive(AVLNode node, String palabra) {
+        if (node != null) {
+            if (node.palabra.equals(palabra)) {
+                System.out.println("\033[0;1m" + node.palabra + "\033[0m"); // Resalta la palabra en negrita
+                for (Ocurrencia ocurrencia : node.ocurrencias) {
+                    System.out.println("Documento: " + ocurrencia.documento + ", Posición: " + ocurrencia.posicion);
+                }
+            } else if (palabra.compareTo(node.palabra) < 0) {
+                buscarPalabraRecursive(node.left, palabra);
+            } else {
+                buscarPalabraRecursive(node.right, palabra);
+            }
+        }
+    }
+    
 }

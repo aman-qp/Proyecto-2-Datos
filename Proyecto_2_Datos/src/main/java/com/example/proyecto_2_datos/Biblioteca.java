@@ -16,6 +16,10 @@ public class Biblioteca {
         arbolAVL = new AVLTree();
     }
 
+    public AVLTree getArbolAVL() {
+        return arbolAVL;
+    }
+
     // Método para agregar un documento a la biblioteca
     public void agregarDocumento(Documento documento) throws IOException {
         documentos.add(documento);
