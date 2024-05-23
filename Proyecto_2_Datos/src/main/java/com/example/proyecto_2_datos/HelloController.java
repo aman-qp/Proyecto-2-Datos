@@ -17,6 +17,7 @@ import java.io.IOException;
 import java.util.List;
 
 
+
 public class HelloController {
     @FXML
     private TableView<Documento> tablaDocumentos;
@@ -144,7 +145,7 @@ public class HelloController {
 private void onBuscarPalabraClick() {
     String palabra = campoBusqueda.getText().trim();
     if (!palabra.isEmpty()) {
-        biblioteca.getArbolAVL().buscarPalabra(palabra); // Suponiendo que tienes un método getArbolAVL en Biblioteca
+        biblioteca.getArbolAVL().buscarPalabra(palabra); 
     } else {
         mostrarAlerta("Advertencia", "Campo vacío", "Por favor, ingrese una palabra para buscar.");
     }
