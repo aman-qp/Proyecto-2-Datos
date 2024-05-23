@@ -11,6 +11,7 @@ import javafx.scene.control.TextField;
 import javafx.scene.input.MouseEvent;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
+import javafx.scene.web.*;
 
 import java.io.File;
 import java.io.IOException;
@@ -142,13 +143,12 @@ public class HelloController {
         }
     }
     @FXML
-private void onBuscarPalabraClick() {
-    String palabra = campoBusqueda.getText().trim();
-    if (!palabra.isEmpty()) {
-        biblioteca.getArbolAVL().buscarPalabra(palabra); 
-    } else {
-        mostrarAlerta("Advertencia", "Campo vacío", "Por favor, ingrese una palabra para buscar.");
+    private void onBuscarPalabraClick() {
+        String palabra = campoBusqueda.getText().trim();
+        if (!palabra.isEmpty()) {
+            biblioteca.getArbolAVL().buscarPalabra(palabra);
+        } else {
+            mostrarAlerta("Advertencia", "Campo vacío", "Por favor, ingrese una palabra para buscar.");
+        }
     }
-}
-
 }

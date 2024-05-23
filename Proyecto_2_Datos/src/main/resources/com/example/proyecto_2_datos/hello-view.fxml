@@ -38,9 +38,9 @@
                </font>
             </Label>
             <TextField fx:id="campoBusqueda" layoutX="97.0" layoutY="25.0" />
-            <Button fx:id="botonBuscar" layoutX="255.0" layoutY="25.0" text="Buscar" onAction="#onBuscarPalabraClick" />
+            <Button fx:id="botonBuscar" layoutX="255.0" layoutY="25.0" onAction="#onBuscarPalabraClick" text="Buscar" />
             <TextArea fx:id="areaContenido" layoutX="23.0" layoutY="58.0" prefHeight="471.0" prefWidth="656.0" />
-            <Label fx:id="actual" layoutX="287.0" layoutY="23.0" text="Archivo actual:">
+            <Label fx:id="actual" layoutX="351.0" layoutY="22.0" text="Archivo actual:">
                <font>
                   <Font name="Segoe UI Black" size="20.0" />
                </font>
