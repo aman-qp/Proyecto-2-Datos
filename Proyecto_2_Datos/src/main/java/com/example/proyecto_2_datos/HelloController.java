@@ -12,9 +12,11 @@ import javafx.scene.input.MouseEvent;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
 
+
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
+
 
 
 
@@ -117,6 +119,7 @@ public class HelloController {
         try {
             String contenido = documentoSeleccionado.obtenerContenido();
             areaContenido.setText(contenido);
+            areaContenido.setEditable(false); // Hacer que el TextArea sea de solo lectura
         } catch (IOException e) {
             mostrarAlerta("Error", "Error al obtener contenido del documento", e.getMessage());
         }
