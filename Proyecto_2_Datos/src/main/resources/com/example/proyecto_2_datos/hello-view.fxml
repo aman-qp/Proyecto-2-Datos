@@ -9,44 +9,46 @@
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.text.Font?>
+<?import javafx.scene.web.WebView?>
 
 <SplitPane dividerPositions="0.29797979797979796" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="591.0" prefWidth="1005.0" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.proyecto_2_datos.HelloController">
-  <items>
-    <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="578.0" prefWidth="340.0">
-         <children>
-            <Label layoutX="14.0" layoutY="6.0" text="Text Finder">
-               <font>
-                  <Font name="Segoe UI Black" size="20.0" />
-               </font>
-            </Label>
-            <TableView fx:id="tablaDocumentos" layoutX="15.0" layoutY="45.0" prefHeight="403.0" prefWidth="267.0">
-              <columns>
-                <TableColumn fx:id="tabla_docu" prefWidth="295.0" text="Documentos " />
-              </columns>
-            </TableView>
-            <Button fx:id="ag_docu" layoutX="25.0" layoutY="466.0" mnemonicParsing="false" onAction="#onAgregarDocumentoClick" text="Agregar documento" />
-            <Button fx:id="eli_docu" layoutX="25.0" layoutY="506.0" mnemonicParsing="false" onAction="#onEliminarDocumentoClick" text="Eliminar documento" />
-            <Button layoutX="167.0" layoutY="506.0" mnemonicParsing="false" text="Act documento" />
-            <Button fx:id="ag_docu1" layoutX="165.0" layoutY="466.0" mnemonicParsing="false" onAction="#onAgregarCarpetaClick" text="Agregar carpeta" />
-         </children></AnchorPane>
-    <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="574.0" prefWidth="701.0">
-         <children>
-            <TextField layoutX="97.0" layoutY="25.0" />
-            <Label layoutX="14.0" layoutY="22.0" text="Buscar:">
-               <font>
-                  <Font name="Segoe UI Black" size="20.0" />
-               </font>
-            </Label>
-            <TextField fx:id="campoBusqueda" layoutX="97.0" layoutY="25.0" />
-            <Button fx:id="botonBuscar" layoutX="255.0" layoutY="25.0" onAction="#onBuscarPalabraClick" text="Buscar" />
-            <TextArea fx:id="areaContenido" layoutX="23.0" layoutY="58.0" prefHeight="471.0" prefWidth="656.0" />
-            <Label fx:id="actual" layoutX="287.0" layoutY="23.0" text="Archivo actual:">
-               <font>
-                  <Font name="Segoe UI Black" size="20.0" />
-               </font>
-            </Label>
-            <Button layoutX="413.0" layoutY="543.0" mnemonicParsing="false" text="Siguiente" />
-            <Button layoutX="237.0" layoutY="543.0" mnemonicParsing="false" text="Anterior" />
-         </children></AnchorPane>
-  </items>
+    <items>
+        <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="578.0" prefWidth="340.0">
+            <children>
+                <Label layoutX="14.0" layoutY="6.0" text="Text Finder">
+                    <font>
+                        <Font name="Segoe UI Black" size="20.0"/>
+                    </font>
+                </Label>
+                <TableView fx:id="tablaDocumentos" layoutX="15.0" layoutY="45.0" prefHeight="403.0" prefWidth="267.0">
+                    <columns>
+                        <TableColumn fx:id="tabla_docu" prefWidth="295.0" text="Documentos"/>
+                    </columns>
+                </TableView>
+                <Button fx:id="ag_docu" layoutX="25.0" layoutY="466.0" mnemonicParsing="false" onAction="#onAgregarDocumentoClick" text="Agregar documento"/>
+                <Button fx:id="eli_docu" layoutX="25.0" layoutY="506.0" mnemonicParsing="false" onAction="#onEliminarDocumentoClick" text="Eliminar documento"/>
+                <Button layoutX="167.0" layoutY="506.0" mnemonicParsing="false" text="Act documento"/>
+                <Button fx:id="ag_docu1" layoutX="165.0" layoutY="466.0" mnemonicParsing="false" onAction="#onAgregarCarpetaClick" text="Agregar carpeta"/>
+            </children>
+        </AnchorPane>
+        <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="574.0" prefWidth="701.0">
+            <children>
+                <TextField fx:id="campoBusqueda" layoutX="97.0" layoutY="25.0"/>
+                <Label layoutX="14.0" layoutY="22.0" text="Buscar:">
+                    <font>
+                        <Font name="Segoe UI Black" size="20.0"/>
+                    </font>
+                </Label>
+                <Button fx:id="botonBuscar" layoutX="255.0" layoutY="25.0" onAction="#onBuscarPalabraClick" text="Buscar"/>
+                <WebView fx:id="vistaContenido" layoutX="23.0" layoutY="58.0" prefHeight="471.0" prefWidth="656.0"/>
+                <Label fx:id="actual" layoutX="350.0" layoutY="23.0" text="Archivo actual:">
+                    <font>
+                        <Font name="Segoe UI Black" size="20.0"/>
+                    </font>
+                </Label>
+                <Button layoutX="413.0" layoutY="543.0" mnemonicParsing="false" text="Siguiente"/>
+                <Button layoutX="237.0" layoutY="543.0" mnemonicParsing="false" text="Anterior"/>
+            </children>
+        </AnchorPane>
+    </items>
 </SplitPane>

@@ -4,6 +4,7 @@ module com.example.proyecto_2_datos {
     requires org.apache.pdfbox;
     requires org.apache.poi.ooxml;
     requires javafx.web;
+    requires org.apache.commons.text;
 
 
     opens com.example.proyecto_2_datos to javafx.fxml;

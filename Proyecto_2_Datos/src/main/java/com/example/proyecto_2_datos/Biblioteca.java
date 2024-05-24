@@ -106,4 +106,13 @@ public class Biblioteca {
         }
         return palabra.toString();
     }
+
+    public boolean existeDocumentoConRuta(String rutaArchivo) {
+        for (Documento documento : documentos) {
+            if (documento.getRuta().equals(rutaArchivo)) {
+                return true; // El documento con esta ruta ya existe
+            }
+        }
+        return false; // El documento con esta ruta no existe
+    }
 }

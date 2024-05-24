@@ -1,5 +1,6 @@
 package com.example.proyecto_2_datos;
 
+import javafx.application.Platform;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
@@ -12,13 +13,14 @@ import javafx.scene.input.MouseEvent;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
 import javafx.scene.web.*;
-
+import org.apache.commons.text.StringEscapeUtils;
 
 
 
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
+import java.util.regex.Pattern;
 
 
 
@@ -40,6 +42,8 @@ public class HelloController {
 
     @FXML
     private TextField campoBusqueda;
+    @FXML
+    private WebView vistaContenido;
 
     @FXML
     private void initialize() {
@@ -53,28 +57,34 @@ public class HelloController {
     }
 
     // Método para manejar el evento de agregar documentos
-    @FXML
-    private void onAgregarDocumentoClick() {
-        FileChooser fileChooser = new FileChooser();
-        fileChooser.setTitle("Seleccionar documento");
-        fileChooser.setInitialDirectory(new File(System.getProperty("user.home")));
-        fileChooser.getExtensionFilters().addAll(
-                new FileChooser.ExtensionFilter("Documentos", "*.pdf", "*.docx", "*.txt")
-        );
-        List<File> selectedFiles = fileChooser.showOpenMultipleDialog(null);
+    // Método para manejar el evento de agregar documentos
+@FXML
+private void onAgregarDocumentoClick() {
+    FileChooser fileChooser = new FileChooser();
+    fileChooser.setTitle("Seleccionar documento");
+    fileChooser.setInitialDirectory(new File(System.getProperty("user.home")));
+    fileChooser.getExtensionFilters().addAll(
+            new FileChooser.ExtensionFilter("Documentos", "*.pdf", "*.docx", "*.txt")
+    );
+    List<File> selectedFiles = fileChooser.showOpenMultipleDialog(null);
 
-        if (selectedFiles != null) {
-            for (File selectedFile : selectedFiles) {
-                Documento documento = new Documento(selectedFile.getName(), selectedFile.getAbsolutePath());
+    if (selectedFiles != null) {
+        for (File selectedFile : selectedFiles) {
+            String rutaArchivo = selectedFile.getAbsolutePath();
+            // Verificar si la ruta del archivo ya ha sido agregada anteriormente
+            if (!biblioteca.existeDocumentoConRuta(rutaArchivo)) {
+                Documento documento = new Documento(selectedFile.getName(), rutaArchivo);
                 try {
                     biblioteca.agregarDocumento(documento);
                 } catch (IOException e) {
                     mostrarAlerta("Error", "Error al agregar el documento", e.getMessage());
                 }
             }
-            tablaDocumentos.getItems().addAll(biblioteca.getDocumentos());
         }
+        tablaDocumentos.getItems().clear(); // Limpiar la tabla antes de agregar los documentos nuevamente
+        tablaDocumentos.getItems().addAll(biblioteca.getDocumentos());
     }
+}
 
     // Método para manejar el evento de agregar una carpeta de documentos
     @FXML
@@ -115,20 +125,41 @@ public class HelloController {
         }
     }
 
-   // Método para manejar el evento de seleccionar un documento en la tabla
-   private void onDocumentoSeleccionado(MouseEvent event) {
-    Documento documentoSeleccionado = tablaDocumentos.getSelectionModel().getSelectedItem();
-    if (documentoSeleccionado != null) {
-        try {
-            String contenido = documentoSeleccionado.obtenerContenido();
-            areaContenido.setText(contenido);
-            areaContenido.setEditable(false); // Hacer que el TextArea sea de solo lectura
-        } catch (IOException e) {
-            mostrarAlerta("Error", "Error al obtener contenido del documento", e.getMessage());
+    @FXML
+    private void onDocumentoSeleccionado(MouseEvent event) {
+        Documento documentoSeleccionado = tablaDocumentos.getSelectionModel().getSelectedItem();
+        if (documentoSeleccionado != null) {
+            cargarContenidoDocumento(documentoSeleccionado);
         }
     }
+    
+   // Método para cargar el contenido de un documento en el WebView con saltos de línea
+private void cargarContenidoDocumento(Documento documento) {
+    try {
+        String contenido = documento.obtenerContenido();
+        contenido = StringEscapeUtils.escapeHtml4(contenido);
+        contenido = contenido.replaceAll("\n", "<br>"); // Reemplazar saltos de línea con etiquetas <br>
+        String palabraBuscada = campoBusqueda.getText().trim();
+        if (!palabraBuscada.isEmpty()) {
+            contenido = resaltarPalabrasOFrases(contenido, palabraBuscada);
+        }
+        contenido = "<html><body>" + contenido + "</body></html>";
+        System.out.println("Contenido HTML: " + contenido); // Verificar el contenido en la consola
+        vistaContenido.getEngine().loadContent(contenido);
+    } catch (IOException e) {
+        mostrarAlerta("Error", "Error al obtener contenido del documento", e.getMessage());
+    } catch (Exception ex) {
+        // Capturar cualquier excepción y mostrarla en una alerta
+        mostrarAlerta("Error", "Error al cargar contenido en el WebView", ex.getMessage());
+    }
 }
-
+    
+    // Método para resaltar palabras o frases en el contenido
+    private String resaltarPalabrasOFrases(String contenido, String palabraBuscada) {
+        // Usar expresiones regulares para encontrar todas las ocurrencias de la palabra o frase
+        String regex = "(?i)\\b" + Pattern.quote(palabraBuscada) + "\\b";
+        return contenido.replaceAll(regex, "<mark>$0</mark>");
+    }
     // Método para mostrar una alerta
     private void mostrarAlerta(String titulo, String encabezado, String mensaje) {
         Alert alert = new Alert(Alert.AlertType.ERROR);
@@ -151,10 +182,22 @@ public class HelloController {
 private void onBuscarPalabraClick() {
     String palabra = campoBusqueda.getText().trim();
     if (!palabra.isEmpty()) {
-        biblioteca.getArbolAVL().buscarPalabra(palabra); 
+        // Actualizar el contenido del documento con la nueva palabra buscada
+        cargarContenidoDocumento(tablaDocumentos.getSelectionModel().getSelectedItem());
+        // Resaltar las palabras buscadas nuevamente
+        resaltarPalabrasEnDocumento(palabra);
     } else {
         mostrarAlerta("Advertencia", "Campo vacío", "Por favor, ingrese una palabra para buscar.");
     }
+}
+
+// Método para resaltar las palabras buscadas en el documento
+private void resaltarPalabrasEnDocumento(String palabraBuscada) {
+    String contenido = vistaContenido.getEngine().getDocument().toString();
+    contenido = StringEscapeUtils.unescapeHtml4(contenido); // Deshacer el escape del contenido HTML
+    contenido = resaltarPalabrasOFrases(contenido, palabraBuscada);
+    contenido = "<html><body>" + contenido + "</body></html>";
+    vistaContenido.getEngine().loadContent(contenido);
 }
 
 }
