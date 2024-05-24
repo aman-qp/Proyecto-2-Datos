@@ -3,12 +3,7 @@ package com.example.proyecto_2_datos;
 import javafx.application.Platform;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.fxml.FXML;
-import javafx.scene.control.Alert;
-import javafx.scene.control.Button;
-import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableView;
-import javafx.scene.control.TextArea;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
 import javafx.scene.input.MouseEvent;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
@@ -44,6 +39,10 @@ public class HelloController {
     private TextField campoBusqueda;
     @FXML
     private WebView vistaContenido;
+
+    @FXML
+    private Label actual;
+
 
     @FXML
     private void initialize() {
@@ -130,10 +129,47 @@ private void onAgregarDocumentoClick() {
         Documento documentoSeleccionado = tablaDocumentos.getSelectionModel().getSelectedItem();
         if (documentoSeleccionado != null) {
             cargarContenidoDocumento(documentoSeleccionado);
+            actual.setText(documentoSeleccionado.getNombre());
         }
     }
-    
-   // Método para cargar el contenido de un documento en el WebView con saltos de línea
+
+    @FXML
+    private void onSiguienteClick() {
+        int currentIndex = tablaDocumentos.getSelectionModel().getSelectedIndex();
+        if (currentIndex < tablaDocumentos.getItems().size() - 1) {
+            tablaDocumentos.getSelectionModel().select(currentIndex + 1);
+            Documento documentoSeleccionado = tablaDocumentos.getSelectionModel().getSelectedItem();
+            cargarContenidoDocumento(documentoSeleccionado);
+            actual.setText(documentoSeleccionado.getNombre());
+        }
+    }
+
+    @FXML
+    private void onAnteriorClick() {
+        int currentIndex = tablaDocumentos.getSelectionModel().getSelectedIndex();
+        if (currentIndex > 0) {
+            tablaDocumentos.getSelectionModel().select(currentIndex - 1);
+            Documento documentoSeleccionado = tablaDocumentos.getSelectionModel().getSelectedItem();
+            cargarContenidoDocumento(documentoSeleccionado);
+            actual.setText(documentoSeleccionado.getNombre());
+        }
+    }
+
+    @FXML
+    private void onActualizarClick() {
+        for (Documento documento : tablaDocumentos.getItems()) {
+            try {
+                Documento documentoNuevo = new Documento(documento.getNombre(), documento.getRuta());
+                biblioteca.actualizarDocumento(documento, documentoNuevo);
+            } catch (IOException e) {
+                mostrarAlerta("Error", "Error al actualizar el documento", e.getMessage());
+            }
+        }
+    }
+
+
+
+    // Método para cargar el contenido de un documento en el WebView con saltos de línea
 private void cargarContenidoDocumento(Documento documento) {
     try {
         String contenido = documento.obtenerContenido();

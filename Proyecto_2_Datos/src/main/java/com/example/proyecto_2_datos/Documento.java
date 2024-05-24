@@ -14,9 +14,6 @@ public class Documento {
     private String nombre;
     private String ruta; // Ruta del archivo asociado
 
-    public Documento(String nombre) {
-        this.nombre = nombre;
-    }
 
     public Documento(String nombre, String ruta) {
         this.nombre = nombre;
