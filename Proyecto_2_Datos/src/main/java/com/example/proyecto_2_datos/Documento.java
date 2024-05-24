@@ -14,14 +14,15 @@ import java.util.Objects;
 public class Documento {
     private String nombre;
     private String ruta; // Ruta del archivo asociado
-    private long tamaño;
+    private int tamaño;
     private LocalDateTime fechaCreacion;
 
 
-    public Documento(String nombre, String ruta, LocalDateTime fechaCreacion, long tamaño) {
+    public Documento(String nombre, String ruta, LocalDateTime fechaCreacion, int tamaño) {
         this.nombre = nombre;
         this.ruta = ruta;
         this.fechaCreacion = fechaCreacion;
+        this.tamaño = tamaño;
     }
 
     public String getNombre() {
@@ -36,7 +37,7 @@ public class Documento {
         return fechaCreacion;
     }
 
-    public long getTamaño() {
+    public int getTamaño() {
         return tamaño;
     }
 

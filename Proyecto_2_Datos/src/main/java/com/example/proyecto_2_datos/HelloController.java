@@ -10,8 +10,6 @@ import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
 import javafx.scene.web.*;
 import org.apache.commons.text.StringEscapeUtils;
-import javafx.scene.control.Alert;
-import javafx.scene.control.ButtonType;
 
 import java.io.File;
 import java.io.IOException;
@@ -22,7 +20,6 @@ import java.time.ZoneId;
 import java.util.List;
 import java.util.regex.Pattern;
 
-import javafx.scene.web.WebEngine;
 import org.apache.commons.text.StringEscapeUtils;
 
 public class HelloController {
@@ -80,7 +77,7 @@ public class HelloController {
                     try {
                         BasicFileAttributes attrs = Files.readAttributes(selectedFile.toPath(), BasicFileAttributes.class);
                         LocalDateTime fechaCreacion = LocalDateTime.ofInstant(attrs.creationTime().toInstant(), ZoneId.systemDefault());
-                        long tamaño = attrs.size();
+                        int tamaño = (int) attrs.size();
                         Documento documento = new Documento(selectedFile.getName(), rutaArchivo, fechaCreacion, tamaño);
                         biblioteca.agregarDocumento(documento);
                     } catch (IOException e) {
@@ -110,7 +107,7 @@ public class HelloController {
                             try {
                                 BasicFileAttributes attrs = Files.readAttributes(file.toPath(), BasicFileAttributes.class);
                                 LocalDateTime fechaCreacion = LocalDateTime.ofInstant(attrs.creationTime().toInstant(), ZoneId.systemDefault());
-                                long tamaño = attrs.size();
+                                int tamaño = (int) attrs.size();
                                 Documento documento = new Documento(nombre, file.getAbsolutePath(), fechaCreacion, tamaño);
                                 biblioteca.agregarDocumento(documento);
                             } catch (IOException e) {
@@ -213,7 +210,7 @@ public class HelloController {
             try {
                 BasicFileAttributes attrs = Files.readAttributes(new File(documento.getRuta()).toPath(), BasicFileAttributes.class);
                 LocalDateTime fechaCreacion = LocalDateTime.ofInstant(attrs.creationTime().toInstant(), ZoneId.systemDefault());
-                long tamaño = attrs.size();
+                int tamaño = (int) attrs.size();
                 Documento documentoNuevo = new Documento(documento.getNombre(), documento.getRuta(), fechaCreacion, tamaño);
                 biblioteca.actualizarDocumento(documento, documentoNuevo);
             } catch (IOException e) {
@@ -351,7 +348,7 @@ public class HelloController {
 
     @FXML
     private void ordenarPorTamano() {
-        biblioteca.ordenarporTamaño();
+        biblioteca.ordenarPorTamaño();
         tablaDocumentos.getItems().clear();
         tablaDocumentos.getItems().addAll(biblioteca.getDocumentos());
     }

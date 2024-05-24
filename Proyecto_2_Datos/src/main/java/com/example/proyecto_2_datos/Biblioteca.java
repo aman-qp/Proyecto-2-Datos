@@ -3,6 +3,7 @@ package com.example.proyecto_2_datos;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 public class Biblioteca {
@@ -130,43 +131,46 @@ public class Biblioteca {
         }
     }
 
-    public void ordenarporTamaño() {
-        int m = obtenerMaximoTamaño();
 
-        for (int exp = 1; m/exp > 0; exp *= 10)
-        countingSort(exp);
-    }
-
-    private int obtenerMaximoTamaño() {
-        long max = documentos.get(0).getTamaño();
-        for (Documento doc : documentos) {
-            if (doc.getTamaño() > max)
-                max = doc.getTamaño();
-        }
-        return (int) max;
-    }
-
-    private void countingSort(int exp) {
-        Documento output[] = new Documento[documentos.size()];
-        int i;
-        int count[] = new int[10];
-        Arrays.fill(count, 0);
-
-        for (i = 0; i < documentos.size(); i++)
-            count[(int) (documentos.get(i).getTamaño()/exp)%10]++;
-
-        for (i = 1; i < 10; i++)
-            count[i] += count[i - 1];
-
-        for (i = documentos.size() - 1; i >= 0; i--) {
-            output[count[(int) (documentos.get(i).getTamaño()/exp)%10] - 1] = documentos.get(i);
-            count[(int) (documentos.get(i).getTamaño()/exp)%10]--;
-        }
-
-        for (i = 0; i < documentos.size(); i++)
-            documentos.set(i, output[i]);
-    }
-
-        
+    public void ordenarPorTamaño() {
+        if (documentos.isEmpty()) return;
     
-}
+        // Encontrar el máximo tamaño para saber el número de dígitos
+        long maxTamaño = documentos.stream().mapToLong(Documento::getTamaño).max().getAsLong();
+    
+        // Aplicar counting sort para cada dígito. El exponente indica qué dígito está siendo procesado
+        for (int exponente = 1; maxTamaño / exponente > 0; exponente *= 10) {
+            countingSortPorTamaño(exponente);
+        }
+    }
+    
+    private void countingSortPorTamaño(int exponente) {
+        int n = documentos.size();
+        List<Documento> documentosOrdenados = new ArrayList<>(Collections.nCopies(n, null));
+        int[] count = new int[10]; // Array de conteo para los dígitos (0-9)
+    
+        // Contar ocurrencias de cada dígito
+        for (Documento doc : documentos) {
+            int index = (int) ((doc.getTamaño() / exponente) % 10);
+            count[index]++;
+        }
+    
+        // Cambiar count[i] para que contenga la posición actual en el array de salida
+        for (int i = 1; i < 10; i++) {
+            count[i] += count[i - 1];
+        }
+    
+        // Construir el array de salida
+        for (int i = n - 1; i >= 0; i--) {
+            Documento doc = documentos.get(i);
+            int index = (int) ((doc.getTamaño() / exponente) % 10);
+            documentosOrdenados.set(count[index] - 1, doc);
+            count[index]--;
+        }
+    
+        // Copiar los elementos ordenados de vuelta a documentos
+        for (int i = 0; i < n; i++) {
+            documentos.set(i, documentosOrdenados.get(i));
+        }
+    }
+}    
