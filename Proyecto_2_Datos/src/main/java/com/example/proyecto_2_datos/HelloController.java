@@ -2,6 +2,7 @@ package com.example.proyecto_2_datos;
 
 import javafx.application.Platform;
 import javafx.beans.property.SimpleStringProperty;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.input.MouseEvent;
@@ -10,15 +11,14 @@ import javafx.stage.FileChooser;
 import javafx.scene.web.*;
 import org.apache.commons.text.StringEscapeUtils;
 
-
-
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.regex.Pattern;
-
-
-
 
 public class HelloController {
     @FXML
@@ -32,7 +32,7 @@ public class HelloController {
     @FXML
     private TextArea areaContenido;
 
-     @FXML
+    @FXML
     private Button botonBuscar;
 
     @FXML
@@ -42,7 +42,6 @@ public class HelloController {
 
     @FXML
     private Label actual;
-
 
     @FXML
     private void initialize() {
@@ -55,37 +54,37 @@ public class HelloController {
         arbolAVL = biblioteca.getArbolAVL();
     }
 
-    // Método para manejar el evento de agregar documentos
-    // Método para manejar el evento de agregar documentos
-@FXML
-private void onAgregarDocumentoClick() {
-    FileChooser fileChooser = new FileChooser();
-    fileChooser.setTitle("Seleccionar documento");
-    fileChooser.setInitialDirectory(new File(System.getProperty("user.home")));
-    fileChooser.getExtensionFilters().addAll(
-            new FileChooser.ExtensionFilter("Documentos", "*.pdf", "*.docx", "*.txt")
-    );
-    List<File> selectedFiles = fileChooser.showOpenMultipleDialog(null);
+    @FXML
+    private void onAgregarDocumentoClick() {
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Seleccionar documento");
+        fileChooser.setInitialDirectory(new File(System.getProperty("user.home")));
+        fileChooser.getExtensionFilters().addAll(
+                new FileChooser.ExtensionFilter("Documentos", "*.pdf", "*.docx", "*.txt")
+        );
+        List<File> selectedFiles = fileChooser.showOpenMultipleDialog(null);
 
-    if (selectedFiles != null) {
-        for (File selectedFile : selectedFiles) {
-            String rutaArchivo = selectedFile.getAbsolutePath();
-            // Verificar si la ruta del archivo ya ha sido agregada anteriormente
-            if (!biblioteca.existeDocumentoConRuta(rutaArchivo)) {
-                Documento documento = new Documento(selectedFile.getName(), rutaArchivo);
-                try {
-                    biblioteca.agregarDocumento(documento);
-                } catch (IOException e) {
-                    mostrarAlerta("Error", "Error al agregar el documento", e.getMessage());
+        if (selectedFiles != null) {
+            for (File selectedFile : selectedFiles) {
+                String rutaArchivo = selectedFile.getAbsolutePath();
+                // Verificar si la ruta del archivo ya ha sido agregada anteriormente
+                if (!biblioteca.existeDocumentoConRuta(rutaArchivo)) {
+                    try {
+                        BasicFileAttributes attrs = Files.readAttributes(selectedFile.toPath(), BasicFileAttributes.class);
+                        LocalDateTime fechaCreacion = LocalDateTime.ofInstant(attrs.creationTime().toInstant(), ZoneId.systemDefault());
+                        long tamaño = attrs.size();
+                        Documento documento = new Documento(selectedFile.getName(), rutaArchivo, fechaCreacion, tamaño);
+                        biblioteca.agregarDocumento(documento);
+                    } catch (IOException e) {
+                        mostrarAlerta("Error", "Error al agregar el documento", e.getMessage());
+                    }
                 }
             }
+            tablaDocumentos.getItems().clear(); // Limpiar la tabla antes de agregar los documentos nuevamente
+            tablaDocumentos.getItems().addAll(biblioteca.getDocumentos());
         }
-        tablaDocumentos.getItems().clear(); // Limpiar la tabla antes de agregar los documentos nuevamente
-        tablaDocumentos.getItems().addAll(biblioteca.getDocumentos());
     }
-}
 
-    // Método para manejar el evento de agregar una carpeta de documentos
     @FXML
     private void onAgregarCarpetaClick() {
         DirectoryChooser directoryChooser = new DirectoryChooser();
@@ -100,8 +99,11 @@ private void onAgregarDocumentoClick() {
                         String nombre = file.getName();
                         String extension = obtenerExtension(nombre);
                         if (extension.equals("pdf") || extension.equals("docx") || extension.equals("txt")) {
-                            Documento documento = new Documento(nombre, file.getAbsolutePath());
                             try {
+                                BasicFileAttributes attrs = Files.readAttributes(file.toPath(), BasicFileAttributes.class);
+                                LocalDateTime fechaCreacion = LocalDateTime.ofInstant(attrs.creationTime().toInstant(), ZoneId.systemDefault());
+                                long tamaño = attrs.size();
+                                Documento documento = new Documento(nombre, file.getAbsolutePath(), fechaCreacion, tamaño);
                                 biblioteca.agregarDocumento(documento);
                             } catch (IOException e) {
                                 mostrarAlerta("Error", "Error al agregar el documento", e.getMessage());
@@ -114,7 +116,6 @@ private void onAgregarDocumentoClick() {
         }
     }
 
-    // Método para manejar el evento de eliminar documentos
     @FXML
     private void onEliminarDocumentoClick() {
         Documento documentoSeleccionado = tablaDocumentos.getSelectionModel().getSelectedItem();
@@ -159,7 +160,10 @@ private void onAgregarDocumentoClick() {
     private void onActualizarClick() {
         for (Documento documento : tablaDocumentos.getItems()) {
             try {
-                Documento documentoNuevo = new Documento(documento.getNombre(), documento.getRuta());
+                BasicFileAttributes attrs = Files.readAttributes(new File(documento.getRuta()).toPath(), BasicFileAttributes.class);
+                LocalDateTime fechaCreacion = LocalDateTime.ofInstant(attrs.creationTime().toInstant(), ZoneId.systemDefault());
+                long tamaño = attrs.size();
+                Documento documentoNuevo = new Documento(documento.getNombre(), documento.getRuta(), fechaCreacion, tamaño);
                 biblioteca.actualizarDocumento(documento, documentoNuevo);
             } catch (IOException e) {
                 mostrarAlerta("Error", "Error al actualizar el documento", e.getMessage());
@@ -167,36 +171,32 @@ private void onAgregarDocumentoClick() {
         }
     }
 
-
-
-    // Método para cargar el contenido de un documento en el WebView con saltos de línea
-private void cargarContenidoDocumento(Documento documento) {
-    try {
-        String contenido = documento.obtenerContenido();
-        contenido = StringEscapeUtils.escapeHtml4(contenido);
-        contenido = contenido.replaceAll("\n", "<br>"); // Reemplazar saltos de línea con etiquetas <br>
-        String palabraBuscada = campoBusqueda.getText().trim();
-        if (!palabraBuscada.isEmpty()) {
-            contenido = resaltarPalabrasOFrases(contenido, palabraBuscada);
+    private void cargarContenidoDocumento(Documento documento) {
+        try {
+            String contenido = documento.obtenerContenido();
+            contenido = StringEscapeUtils.escapeHtml4(contenido);
+            contenido = contenido.replaceAll("\n", "<br>"); // Reemplazar saltos de línea con etiquetas <br>
+            String palabraBuscada = campoBusqueda.getText().trim();
+            if (!palabraBuscada.isEmpty()) {
+                contenido = resaltarPalabrasOFrases(contenido, palabraBuscada);
+            }
+            contenido = "<html><body>" + contenido + "</body></html>";
+            System.out.println("Contenido HTML: " + contenido); // Verificar el contenido en la consola
+            vistaContenido.getEngine().loadContent(contenido);
+        } catch (IOException e) {
+            mostrarAlerta("Error", "Error al obtener contenido del documento", e.getMessage());
+        } catch (Exception ex) {
+            // Capturar cualquier excepción y mostrarla en una alerta
+            mostrarAlerta("Error", "Error al cargar contenido en el WebView", ex.getMessage());
         }
-        contenido = "<html><body>" + contenido + "</body></html>";
-        System.out.println("Contenido HTML: " + contenido); // Verificar el contenido en la consola
-        vistaContenido.getEngine().loadContent(contenido);
-    } catch (IOException e) {
-        mostrarAlerta("Error", "Error al obtener contenido del documento", e.getMessage());
-    } catch (Exception ex) {
-        // Capturar cualquier excepción y mostrarla en una alerta
-        mostrarAlerta("Error", "Error al cargar contenido en el WebView", ex.getMessage());
     }
-}
-    
-    // Método para resaltar palabras o frases en el contenido
+
     private String resaltarPalabrasOFrases(String contenido, String palabraBuscada) {
         // Asegurarse de escapar caracteres especiales en la palabra o frase buscada
         String regex = "(?i)(" + Pattern.quote(palabraBuscada) + ")";
         return contenido.replaceAll(regex, "<mark>$1</mark>");
     }
-    // Método para mostrar una alerta
+
     private void mostrarAlerta(String titulo, String encabezado, String mensaje) {
         Alert alert = new Alert(Alert.AlertType.ERROR);
         alert.setTitle(titulo);
@@ -205,7 +205,6 @@ private void cargarContenidoDocumento(Documento documento) {
         alert.showAndWait();
     }
 
-    // Método para obtener la extensión de un archivo
     private String obtenerExtension(String nombreArchivo) {
         int puntoIndex = nombreArchivo.lastIndexOf(".");
         if (puntoIndex > 0 && puntoIndex < nombreArchivo.length() - 1) {
@@ -214,26 +213,48 @@ private void cargarContenidoDocumento(Documento documento) {
             return "";
         }
     }
+
     @FXML
-private void onBuscarPalabraClick() {
-    String palabra = campoBusqueda.getText().trim();
-    if (!palabra.isEmpty()) {
-        // Actualizar el contenido del documento con la nueva palabra buscada
-        cargarContenidoDocumento(tablaDocumentos.getSelectionModel().getSelectedItem());
-        // Resaltar las palabras buscadas nuevamente
-        resaltarPalabrasEnDocumento(palabra);
-    } else {
-        mostrarAlerta("Advertencia", "Campo vacío", "Por favor, ingrese una palabra para buscar.");
+    private void onBuscarPalabraClick() {
+        String palabra = campoBusqueda.getText().trim();
+        if (!palabra.isEmpty()) {
+            // Actualizar el contenido del documento con la nueva palabra buscada
+            cargarContenidoDocumento(tablaDocumentos.getSelectionModel().getSelectedItem());
+            // Resaltar las palabras buscadas nuevamente
+            resaltarPalabrasEnDocumento(palabra);
+        } else {
+            mostrarAlerta("Advertencia", "Campo vacío", "Por favor, ingrese una palabra para buscar.");
+        }
     }
-}
 
-// Método para resaltar las palabras buscadas en el documento
-private void resaltarPalabrasEnDocumento(String palabraBuscada) {
-    String contenido = vistaContenido.getEngine().getDocument().toString();
-    contenido = StringEscapeUtils.unescapeHtml4(contenido); // Deshacer el escape del contenido HTML
-    contenido = resaltarPalabrasOFrases(contenido, palabraBuscada);
-    contenido = "<html><body>" + contenido + "</body></html>";
-    vistaContenido.getEngine().loadContent(contenido);
-}
+    private void resaltarPalabrasEnDocumento(String palabraBuscada) {
+        String contenido = vistaContenido.getEngine().getDocument().toString();
+        contenido = StringEscapeUtils.unescapeHtml4(contenido); // Deshacer el escape del contenido HTML
+        contenido = resaltarPalabrasOFrases(contenido, palabraBuscada);
+        contenido = "<html><body>" + contenido + "</body></html>";
+        vistaContenido.getEngine().loadContent(contenido);
+    }
 
+    @FXML
+    private void ordenarPorTamano() {
+        biblioteca.ordenarporTamaño();
+        tablaDocumentos.getItems().clear();
+        tablaDocumentos.getItems().addAll(biblioteca.getDocumentos());
+    }
+
+    @FXML
+    private void ordenarPorFecha() {
+        biblioteca.ordenarporFechaCreacion();
+        tablaDocumentos.getItems().clear();
+        tablaDocumentos.getItems().addAll(biblioteca.getDocumentos());
+    }
+
+    @FXML
+    private void ordenarPorNombre() {
+        biblioteca.ordenarporNombre();
+        tablaDocumentos.getItems().clear();
+        tablaDocumentos.getItems().addAll(biblioteca.getDocumentos());
+    }
+
+    
 }

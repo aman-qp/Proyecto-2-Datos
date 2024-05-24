@@ -6,6 +6,7 @@ import org.apache.poi.xwpf.usermodel.XWPFDocument;
 import org.apache.poi.xwpf.extractor.XWPFWordExtractor;
 
 import java.io.*;
+import java.time.LocalDateTime;
 import java.util.Objects;
 
 
@@ -13,11 +14,14 @@ import java.util.Objects;
 public class Documento {
     private String nombre;
     private String ruta; // Ruta del archivo asociado
+    private long tamaño;
+    private LocalDateTime fechaCreacion;
 
 
-    public Documento(String nombre, String ruta) {
+    public Documento(String nombre, String ruta, LocalDateTime fechaCreacion, long tamaño) {
         this.nombre = nombre;
         this.ruta = ruta;
+        this.fechaCreacion = fechaCreacion;
     }
 
     public String getNombre() {
@@ -34,6 +38,22 @@ public class Documento {
 
     public void setRuta(String ruta) {
         this.ruta = ruta;
+    }
+
+    public LocalDateTime getFechaCreacion() {
+        return fechaCreacion;
+    }
+
+    public void setFechaCreacion(LocalDateTime fechaCreacion) {
+        this.fechaCreacion = fechaCreacion;
+    }
+
+    public long getTamaño() {
+        return tamaño;
+    }
+
+    public void setTamaño(long tamaño) {
+        this.tamaño = tamaño;
     }
 
     // Método para obtener el contenido del documento

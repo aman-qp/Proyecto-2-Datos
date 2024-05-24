@@ -2,6 +2,7 @@ package com.example.proyecto_2_datos;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class Biblioteca {
@@ -81,4 +82,91 @@ public class Biblioteca {
         }
         return false; // El documento con esta ruta no existe
     }
+
+    public void ordenarporNombre() {
+        quicksort(documentos, 0, documentos.size() - 1);
+    }
+    
+    private void quicksort(List<Documento> documentos, int inicio, int fin) {
+        if (inicio < fin) {
+            int pivote = particion(documentos, inicio, fin);
+            quicksort(documentos, inicio, pivote - 1);
+            quicksort(documentos, pivote + 1, fin);
+        }
+    }
+    
+    private int particion(List<Documento> documentos, int inicio, int fin) {
+        Documento pivote = documentos.get(fin);
+        int i = inicio - 1;
+    
+        for (int j = inicio; j < fin; j++) {
+            if (documentos.get(j).getNombre().compareTo(pivote.getNombre()) < 0) {
+                i++;
+                intercambiar(documentos, i, j);
+            }
+        }
+    
+        intercambiar(documentos, i + 1, fin);
+        return i + 1;
+    }
+    
+    private void intercambiar(List<Documento> documentos, int i, int j) {
+        Documento temp = documentos.get(i);
+        documentos.set(i, documentos.get(j));
+        documentos.set(j, temp);
+    }
+
+    public void ordenarporFechaCreacion() {
+        int n = documentos.size();
+        for (int i = 0; i < n-1; i++) {
+            for (int j = 0; j < n-i-1; j++) {
+                if (documentos.get(j).getFechaCreacion().isAfter(documentos.get(j+1).getFechaCreacion())) {
+                    // Intercambiar documentos[j+1] y documentos[j]
+                    Documento temp = documentos.get(j);
+                    documentos.set(j, documentos.get(j+1));
+                    documentos.set(j+1, temp);
+                }
+            }
+        }
+    }
+
+    public void ordenarporTamaño() {
+    int m = obtenerMaximoTamaño();
+
+    for (int exp = 1; m/exp > 0; exp *= 10)
+    countingSort(exp);
+    }
+
+    private int obtenerMaximoTamaño() {
+        long max = documentos.get(0).getTamaño();
+        for (Documento doc : documentos) {
+            if (doc.getTamaño() > max)
+                max = doc.getTamaño();
+        }
+        return (int) max;
+    }
+
+    private void countingSort(int exp) {
+        Documento output[] = new Documento[documentos.size()];
+        int i;
+        int count[] = new int[10];
+        Arrays.fill(count, 0);
+
+        for (i = 0; i < documentos.size(); i++)
+            count[(int) (documentos.get(i).getTamaño()/exp)%10]++;
+
+        for (i = 1; i < 10; i++)
+            count[i] += count[i - 1];
+
+        for (i = documentos.size() - 1; i >= 0; i--) {
+            output[count[(int) (documentos.get(i).getTamaño()/exp)%10] - 1] = documentos.get(i);
+            count[(int) (documentos.get(i).getTamaño()/exp)%10]--;
+        }
+
+        for (i = 0; i < documentos.size(); i++)
+            documentos.set(i, output[i]);
+    }
+
+        
+    
 }
