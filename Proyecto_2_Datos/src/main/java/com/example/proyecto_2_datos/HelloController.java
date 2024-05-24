@@ -156,9 +156,9 @@ private void cargarContenidoDocumento(Documento documento) {
     
     // Método para resaltar palabras o frases en el contenido
     private String resaltarPalabrasOFrases(String contenido, String palabraBuscada) {
-        // Usar expresiones regulares para encontrar todas las ocurrencias de la palabra o frase
-        String regex = "(?i)\\b" + Pattern.quote(palabraBuscada) + "\\b";
-        return contenido.replaceAll(regex, "<mark>$0</mark>");
+        // Asegurarse de escapar caracteres especiales en la palabra o frase buscada
+        String regex = "(?i)(" + Pattern.quote(palabraBuscada) + ")";
+        return contenido.replaceAll(regex, "<mark>$1</mark>");
     }
     // Método para mostrar una alerta
     private void mostrarAlerta(String titulo, String encabezado, String mensaje) {
