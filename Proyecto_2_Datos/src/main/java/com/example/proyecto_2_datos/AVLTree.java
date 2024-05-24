@@ -30,46 +30,46 @@ class Ocurrencia {
 public class AVLTree {
     public AVLNode root;
 
-    // Get height of node
+    // Obtener la altura del nodo
     private int height(AVLNode node) {
         if (node == null)
             return 0;
         return node.height;
     }
 
-    // Get balance factor of node
+    // Obtener el factor de equilibrio del nodo
     private int getBalance(AVLNode node) {
         if (node == null)
             return 0;
         return height(node.left) - height(node.right);
     }
 
-    // Right rotate subtree rooted with y
+    // Rotación a la derecha del subárbol con raíz en y
     private AVLNode rightRotate(AVLNode y) {
         AVLNode x = y.left;
         AVLNode T2 = x.right;
 
-        // Perform rotation
+        // Realizar la rotación
         x.right = y;
         y.left = T2;
 
-        // Update heights
+        // Actualizar las alturas
         y.height = Math.max(height(y.left), height(y.right)) + 1;
         x.height = Math.max(height(x.left), height(x.right)) + 1;
 
         return x;
     }
 
-    // Left rotate subtree rooted with x
+    // Rotación a la izquierda del subárbol con raíz en x
     private AVLNode leftRotate(AVLNode x) {
         AVLNode y = x.right;
         AVLNode T2 = y.left;
 
-        // Perform rotation
+        // Realizar la rotación
         y.left = x;
         x.right = T2;
 
-        // Update heights
+        // Actualizar las alturas
         x.height = Math.max(height(x.left), height(x.right)) + 1;
         y.height = Math.max(height(y.left), height(y.right)) + 1;
 
@@ -105,28 +105,28 @@ public class AVLTree {
             return node;
         }
 
-        // Update height of this ancestor node
+        // Actualizar la altura de este nodo ancestro
         node.height = 1 + Math.max(height(node.left), height(node.right));
 
-        // Get the balance factor of this ancestor node
+        // Obtener el factor de equilibrio de este nodo ancestro
         int balance = getBalance(node);
 
-        // If node becomes unbalanced, perform rotations
-        // Left Left Case
+        // Si el nodo se desequilibra, realizar rotaciones
+        // Caso Izquierda Izquierda
         if (balance > 1 && palabra.compareTo(node.left.palabra) < 0)
             return rightRotate(node);
 
-        // Right Right Case
+        // Caso Derecha Derecha
         if (balance < -1 && palabra.compareTo(node.right.palabra) > 0)
             return leftRotate(node);
 
-        // Left Right Case
+        // Caso Izquierda Derecha
         if (balance > 1 && palabra.compareTo(node.left.palabra) >= 0) {
             node.left = leftRotate(node.left);
             return rightRotate(node);
         }
 
-        // Right Left Case
+        // Caso Derecha Izquierda
         if (balance < -1 && palabra.compareTo(node.right.palabra) < 0) {
             node.right = rightRotate(node.right);
             return leftRotate(node);
@@ -138,7 +138,7 @@ public class AVLTree {
     public void buscarPalabra(String palabra) {
         buscarPalabraRecursive(root, palabra);
     }
-    
+
     private void buscarPalabraRecursive(AVLNode node, String palabra) {
         if (node != null) {
             if (node.palabra.equals(palabra)) {
@@ -153,5 +153,5 @@ public class AVLTree {
             }
         }
     }
-    
+
 }

@@ -10,6 +10,8 @@ import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
 import javafx.scene.web.*;
 import org.apache.commons.text.StringEscapeUtils;
+import javafx.scene.control.Alert;
+import javafx.scene.control.ButtonType;
 
 import java.io.File;
 import java.io.IOException;
@@ -19,6 +21,9 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.List;
 import java.util.regex.Pattern;
+
+import javafx.scene.web.WebEngine;
+import org.apache.commons.text.StringEscapeUtils;
 
 public class HelloController {
     @FXML
@@ -42,6 +47,9 @@ public class HelloController {
 
     @FXML
     private Label actual;
+
+    @FXML
+    private Label ocurrenciasLabel;
 
     @FXML
     private void initialize() {
@@ -131,30 +139,73 @@ public class HelloController {
         if (documentoSeleccionado != null) {
             cargarContenidoDocumento(documentoSeleccionado);
             actual.setText(documentoSeleccionado.getNombre());
+            // Limpia el contador de ocurrencias cuando se selecciona un nuevo documento
+            ocurrenciasLabel.setText("");
         }
     }
 
     @FXML
     private void onSiguienteClick() {
-        int currentIndex = tablaDocumentos.getSelectionModel().getSelectedIndex();
-        if (currentIndex < tablaDocumentos.getItems().size() - 1) {
-            tablaDocumentos.getSelectionModel().select(currentIndex + 1);
-            Documento documentoSeleccionado = tablaDocumentos.getSelectionModel().getSelectedItem();
-            cargarContenidoDocumento(documentoSeleccionado);
-            actual.setText(documentoSeleccionado.getNombre());
+        String palabraBuscada = campoBusqueda.getText();
+        if (!palabraBuscada.isEmpty()) {
+            WebEngine webEngine = vistaContenido.getEngine();
+            boolean encontrado = (boolean) webEngine.executeScript("if(typeof window.find === 'function'){window.find('" + palabraBuscada + "', true, false, false);}");
+            if (!encontrado) {
+                int currentIndex = tablaDocumentos.getSelectionModel().getSelectedIndex();
+                if (currentIndex < tablaDocumentos.getItems().size() - 1) {
+                    tablaDocumentos.getSelectionModel().select(currentIndex + 1);
+                    cargarContenidoDocumento(tablaDocumentos.getSelectionModel().getSelectedItem());
+                    actual.setText(tablaDocumentos.getSelectionModel().getSelectedItem().getNombre());
+                    actualizarOcurrencias();
+                }
+            } else {
+                actualizarOcurrencias();
+            }
         }
     }
 
     @FXML
     private void onAnteriorClick() {
-        int currentIndex = tablaDocumentos.getSelectionModel().getSelectedIndex();
-        if (currentIndex > 0) {
-            tablaDocumentos.getSelectionModel().select(currentIndex - 1);
-            Documento documentoSeleccionado = tablaDocumentos.getSelectionModel().getSelectedItem();
-            cargarContenidoDocumento(documentoSeleccionado);
-            actual.setText(documentoSeleccionado.getNombre());
+        String palabraBuscada = campoBusqueda.getText();
+        if (!palabraBuscada.isEmpty()) {
+            WebEngine webEngine = vistaContenido.getEngine();
+            boolean encontrado = (boolean) webEngine.executeScript("if(typeof window.find === 'function'){window.find('" + palabraBuscada + "', false, true, false);}");
+            if (!encontrado) {
+                int currentIndex = tablaDocumentos.getSelectionModel().getSelectedIndex();
+                if (currentIndex > 0) {
+                    tablaDocumentos.getSelectionModel().select(currentIndex - 1);
+                    cargarContenidoDocumento(tablaDocumentos.getSelectionModel().getSelectedItem());
+                    actual.setText(tablaDocumentos.getSelectionModel().getSelectedItem().getNombre());
+                    actualizarOcurrencias();
+                }
+            } else {
+                actualizarOcurrencias();
+            }
         }
     }
+
+    private void actualizarOcurrencias() {
+        String palabraBuscada = campoBusqueda.getText();
+        if (!palabraBuscada.isEmpty()) {
+            String contenido = vistaContenido.getEngine().getDocument().toString();
+            contenido = StringEscapeUtils.unescapeHtml4(contenido);
+            int ocurrencias = contarOcurrenciasFraseCompleta(contenido, palabraBuscada);
+            ocurrenciasLabel.setText("Ocurrencias: " + ocurrencias);
+        } else {
+            ocurrenciasLabel.setText("");
+        }
+    }
+
+    private int contarOcurrenciasFraseCompleta(String texto, String frase) {
+        int contador = 0;
+        int indice = texto.toLowerCase().indexOf(frase.toLowerCase());
+        while (indice != -1) {
+            contador++;
+            indice = texto.toLowerCase().indexOf(frase.toLowerCase(), indice + 1);
+        }
+        return contador;
+    }
+
 
     @FXML
     private void onActualizarClick() {
@@ -175,20 +226,33 @@ public class HelloController {
         try {
             String contenido = documento.obtenerContenido();
             contenido = StringEscapeUtils.escapeHtml4(contenido);
-            contenido = contenido.replaceAll("\n", "<br>"); // Reemplazar saltos de línea con etiquetas <br>
+            contenido = contenido.replaceAll("\n", "<br>");
             String palabraBuscada = campoBusqueda.getText().trim();
             if (!palabraBuscada.isEmpty()) {
                 contenido = resaltarPalabrasOFrases(contenido, palabraBuscada);
+                int ocurrencias = contarOcurrencias(contenido, palabraBuscada);
+                ocurrenciasLabel.setText("Ocurrencias: " + ocurrencias);
+            } else {
+                ocurrenciasLabel.setText("");
             }
             contenido = "<html><body>" + contenido + "</body></html>";
-            System.out.println("Contenido HTML: " + contenido); // Verificar el contenido en la consola
+            System.out.println("Contenido HTML: " + contenido);
             vistaContenido.getEngine().loadContent(contenido);
         } catch (IOException e) {
             mostrarAlerta("Error", "Error al obtener contenido del documento", e.getMessage());
         } catch (Exception ex) {
-            // Capturar cualquier excepción y mostrarla en una alerta
             mostrarAlerta("Error", "Error al cargar contenido en el WebView", ex.getMessage());
         }
+    }
+
+    private int contarOcurrencias(String texto, String palabraBuscada) {
+        int contador = 0;
+        int indice = texto.indexOf(palabraBuscada);
+        while (indice != -1) {
+            contador++;
+            indice = texto.indexOf(palabraBuscada, indice + 1);
+        }
+        return contador;
     }
 
     private String resaltarPalabrasOFrases(String contenido, String palabraBuscada) {
@@ -218,21 +282,71 @@ public class HelloController {
     private void onBuscarPalabraClick() {
         String palabra = campoBusqueda.getText().trim();
         if (!palabra.isEmpty()) {
-            // Actualizar el contenido del documento con la nueva palabra buscada
-            cargarContenidoDocumento(tablaDocumentos.getSelectionModel().getSelectedItem());
-            // Resaltar las palabras buscadas nuevamente
-            resaltarPalabrasEnDocumento(palabra);
+            // Mostrar un diálogo de selección para elegir entre buscar palabra por palabra o frase completa
+            Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+            alert.setTitle("Selección de búsqueda");
+            alert.setHeaderText("Seleccione cómo desea buscar:");
+            alert.setContentText("Elija 'Palabra por palabra' para buscar cada palabra individualmente o 'Frase completa' para buscar la frase completa.");
+
+            ButtonType buttonTypeWordByWord = new ButtonType("Palabra por palabra");
+            ButtonType buttonTypePhrase = new ButtonType("Frase completa");
+
+            alert.getButtonTypes().setAll(buttonTypeWordByWord, buttonTypePhrase);
+
+            alert.showAndWait().ifPresent(buttonType -> {
+                if (buttonType == buttonTypeWordByWord) {
+                    buscarPalabraPorPalabra(palabra);
+                } else if (buttonType == buttonTypePhrase) {
+                    buscarFraseCompleta(palabra);
+                }
+            });
         } else {
             mostrarAlerta("Advertencia", "Campo vacío", "Por favor, ingrese una palabra para buscar.");
         }
     }
 
+    private void buscarPalabraPorPalabra(String palabra) {
+        // Actualizar el contenido del documento con la nueva palabra buscada
+        cargarContenidoDocumento(tablaDocumentos.getSelectionModel().getSelectedItem());
+        // Resaltar las palabras buscadas nuevamente
+        resaltarPalabrasEnDocumento(palabra);
+    }
+
+    private void buscarFraseCompleta(String frase) {
+        // Actualizar el contenido del documento con la nueva frase buscada
+        cargarContenidoDocumento(tablaDocumentos.getSelectionModel().getSelectedItem());
+        // Resaltar la frase buscada
+        resaltarFraseEnDocumento(frase);
+    }
+
     private void resaltarPalabrasEnDocumento(String palabraBuscada) {
         String contenido = vistaContenido.getEngine().getDocument().toString();
         contenido = StringEscapeUtils.unescapeHtml4(contenido); // Deshacer el escape del contenido HTML
-        contenido = resaltarPalabrasOFrases(contenido, palabraBuscada);
+        String[] palabras = palabraBuscada.split("\\s+"); // Dividir la frase en palabras
+        for (String palabra : palabras) {
+            contenido = resaltarPalabra(contenido, palabra);
+        }
         contenido = "<html><body>" + contenido + "</body></html>";
         vistaContenido.getEngine().loadContent(contenido);
+    }
+
+    private void resaltarFraseEnDocumento(String frase) {
+        String contenido = vistaContenido.getEngine().getDocument().toString();
+        contenido = StringEscapeUtils.unescapeHtml4(contenido); // Deshacer el escape del contenido HTML
+
+        // Escapar la frase completa
+        String regex = "(?i)(" + Pattern.quote(frase) + ")";
+        contenido = contenido.replaceAll(regex, "<mark>$1</mark>");
+
+        contenido = "<html><body>" + contenido + "</body></html>";
+        vistaContenido.getEngine().loadContent(contenido);
+    }
+
+
+    private String resaltarPalabra(String contenido, String palabra) {
+        // Asegurarse de escapar caracteres especiales en la palabra
+        String regex = "(?i)(" + Pattern.quote(palabra) + ")";
+        return contenido.replaceAll(regex, "<mark>$1</mark>");
     }
 
     @FXML

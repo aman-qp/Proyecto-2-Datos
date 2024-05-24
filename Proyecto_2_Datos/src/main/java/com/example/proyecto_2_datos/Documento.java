@@ -28,33 +28,18 @@ public class Documento {
         return nombre;
     }
 
-    public void setNombre(String nombre) {
-        this.nombre = nombre;
-    }
-
     public String getRuta() {
         return ruta;
-    }
-
-    public void setRuta(String ruta) {
-        this.ruta = ruta;
     }
 
     public LocalDateTime getFechaCreacion() {
         return fechaCreacion;
     }
 
-    public void setFechaCreacion(LocalDateTime fechaCreacion) {
-        this.fechaCreacion = fechaCreacion;
-    }
-
     public long getTamaño() {
         return tamaño;
     }
 
-    public void setTamaño(long tamaño) {
-        this.tamaño = tamaño;
-    }
 
     // Método para obtener el contenido del documento
     public String obtenerContenido() throws IOException {

@@ -131,10 +131,10 @@ public class Biblioteca {
     }
 
     public void ordenarporTamaño() {
-    int m = obtenerMaximoTamaño();
+        int m = obtenerMaximoTamaño();
 
-    for (int exp = 1; m/exp > 0; exp *= 10)
-    countingSort(exp);
+        for (int exp = 1; m/exp > 0; exp *= 10)
+        countingSort(exp);
     }
 
     private int obtenerMaximoTamaño() {
